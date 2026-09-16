@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">BackgroundEraser</string>
+    <string name="app_name">clean background par Christophe Démottié</string>
+    <string name="launcher_name">clean background</string>
 </resources>

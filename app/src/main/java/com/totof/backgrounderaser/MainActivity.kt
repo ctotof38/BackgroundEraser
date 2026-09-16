@@ -12,6 +12,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,9 +38,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.totof.backgrounderaser.ui.theme.BackgroundEraserTheme
@@ -87,95 +91,117 @@ fun BackgroundEraserScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Text(
-            text = "Background Eraser",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        // Bandeau en haut
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.bandeau),
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.FillWidth
+            )
+            Text(
+                text = "clean background",
+                color = Color.Black,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        // Contenu principal
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = {
-                    pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                },
-                enabled = !isLoading && !isSaving
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Charger une image")
-            }
-
-            processedBitmap?.let { bitmap ->
-                Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
-                        isSaving = true
-                        scope.launch {
-                            val uri = eraserManager.saveBitmapToGallery(bitmap)
-                            isSaving = false
-                            if (uri != null) {
-                                Toast.makeText(context, "Image enregistrée !", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "Erreur lors de l'enregistrement", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
-                    enabled = !isSaving,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                    enabled = !isLoading && !isSaving
                 ) {
-                    if (isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            strokeWidth = 2.dp
+                    Text(text = "Charger une image")
+                }
+
+                processedBitmap?.let { bitmap ->
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            isSaving = true
+                            scope.launch {
+                                val uri = eraserManager.saveBitmapToGallery(bitmap)
+                                isSaving = false
+                                if (uri != null) {
+                                    Toast.makeText(context, "Image enregistrée !", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Erreur lors de l'enregistrement", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        enabled = !isSaving,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
                         )
-                    } else {
-                        Text(text = "Enregistrer")
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onSecondary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(text = "Enregistrer")
+                        }
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.size(48.dp))
-        }
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(48.dp))
+            }
 
-        selectedImageUri?.let { uri ->
-            Text(text = "Original:", style = MaterialTheme.typography.titleMedium)
-            AsyncImage(
-                model = uri,
-                contentDescription = "Original image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .padding(8.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
+            selectedImageUri?.let { uri ->
+                Text(text = "Original:", style = MaterialTheme.typography.titleMedium)
+                AsyncImage(
+                    model = uri,
+                    contentDescription = "Original image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .padding(8.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
 
-        processedBitmap?.let { bitmap ->
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Sujets extraits:", style = MaterialTheme.typography.titleMedium)
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = "Processed image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .padding(8.dp),
-                contentScale = ContentScale.Fit
-            )
+            processedBitmap?.let { bitmap ->
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Sujets extraits:", style = MaterialTheme.typography.titleMedium)
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "Processed image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .padding(8.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
     }
 }
